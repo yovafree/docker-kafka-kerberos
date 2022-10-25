@@ -1,4 +1,4 @@
-= Connect Hazelcast to Secured Kafka Clusters with Kerberos
+= Connect Hazelcast to Kafka Clusters Secured with Kerberos
 :page-layout: tutorial
 :page-product: platform
 :page-categories: Stream Processing, Kafka, Kerberos
