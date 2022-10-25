@@ -1,17 +1,18 @@
-# Kafka with Kerberos authentication
+# Kafka with Kerberos Authentication
+
+For a tutorial, see https://docs.hazelcast.com/tutorials/stream-from-kafka-kerberos.
+
+## Quickstart
 
 ```bash
 docker compose rm -f
 docker compose up
 ```
 
-## Hazelcast SQL
-
 ```bash
 docker exec -it hazelcast bin/hz-cli sql
 ```
 
-See https://docs.hazelcast.com/hazelcast/5.1/sql/learn-sql
 
 ```sql
 CREATE MAPPING trades (
@@ -37,6 +38,8 @@ INSERT INTO trades VALUES
   (1, 'ABCD', 5.5, 10),
   (2, 'EFGH', 14, 20); 
 ```
+
+See https://docs.hazelcast.com/hazelcast/latest/sql/learn-sql
 
 ## Test broker-only Kerberos authentication (GSSAPI)
 

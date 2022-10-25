@@ -65,6 +65,8 @@ services:
     image: hazelcast/hazelcast:5.1.4
     hostname: hazelcast.kerberos.example
     container_name: hazelcast
+    ports:
+    - "5701:5701"
     depends_on:
       - broker
     volumes:
@@ -81,8 +83,6 @@ services:
     - MC_DEFAULT_CLUSTER=dev
     - MC_DEFAULT_CLUSTER_MEMBERS=hazelcast.kerberos.example
     - MC_ALLOW_MULTIPLE_LOGIN=true
-    - MC_ADMIN_USER=admin
-    - MC_ADMIN_PASSWORD=hazelcast12
 
 volumes:
   key-material:
