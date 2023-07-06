@@ -5,6 +5,8 @@ services:
     image: confluentinc/cp-zookeeper:7.1.0
     hostname: zookeeper.kerberos.example
     container_name: zookeeper
+    ports:
+    - "2181:2181"
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
@@ -36,6 +38,10 @@ services:
     image: confluentinc/cp-kafka:7.1.0
     hostname: broker.kerberos.example
     container_name: broker
+    ports:
+    - 29092:29092
+    - 9092:9092
+    - 9093:9093
     depends_on:
       - zookeeper
       - kerberos
@@ -60,29 +66,36 @@ services:
       ZOOKEEPER_SASL_ENABLED: "false"
       KAFKA_OPTS: '-Djava.security.auth.login.config=/etc/kafka/kafka_server_jaas.conf'
       # -Dsun.security.krb5.debug=true -Dcom.ibm.security.jgss.debug=all -Dcom.ibm.security.krb5.Krb5Debug=all -Dsun.security.jgss.debug=true'
+  # kafka-ui:
+  #   image: obsidiandynamics/kafdrop
+  #   ports: 
+  #       - 9000:9000
+  #   environment: 
+  #       - KAFKA_BROKERCONNECT=broker.kerberos.example:29092
+  #       - JVM_OPTS=-Xms32M -Xmx64M
+  #       - SERVER_SERVLET_CONTEXTPATH=/ 
+  # hazelcast:
+  #   image: hazelcast/hazelcast:5.1.4
+  #   hostname: hazelcast.kerberos.example
+  #   container_name: hazelcast
+  #   ports:
+  #   - "5701:5701"
+  #   depends_on:
+  #     - broker
+  #   volumes:
+  #     - key-material:/mnt
+  #     - ./krb5.conf:/etc/krb5.conf
 
-  hazelcast:
-    image: hazelcast/hazelcast:5.1.4
-    hostname: hazelcast.kerberos.example
-    container_name: hazelcast
-    ports:
-    - "5701:5701"
-    depends_on:
-      - broker
-    volumes:
-      - key-material:/mnt
-      - ./krb5.conf:/etc/krb5.conf
-
-  management-center:
-    image: hazelcast/management-center:latest
-    hostname: management-center.kerberos.example
-    container_name: management-center
-    ports:
-    - "8080:8080"
-    environment:
-    - MC_DEFAULT_CLUSTER=dev
-    - MC_DEFAULT_CLUSTER_MEMBERS=hazelcast.kerberos.example
-    - MC_ALLOW_MULTIPLE_LOGIN=true
+  # management-center:
+  #   image: hazelcast/management-center:latest
+  #   hostname: management-center.kerberos.example
+  #   container_name: management-center
+  #   ports:
+  #   - "8080:8080"
+  #   environment:
+  #   - MC_DEFAULT_CLUSTER=dev
+  #   - MC_DEFAULT_CLUSTER_MEMBERS=hazelcast.kerberos.example
+  #   - MC_ALLOW_MULTIPLE_LOGIN=true
 
 volumes:
   key-material:
