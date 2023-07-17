@@ -64,7 +64,7 @@ cn: LDAP
 sn: Service
 uid: ldap
 userPassword: randall
-krb5PrincipalName: ldap/kdc.kerberos.example@${realm}
+krb5PrincipalName: ldap/kerberos@${realm}
 krb5KeyVersionNumber: 0
 
 dn: uid=kafka,ou=Services,dc=kerberos,dc=example
@@ -77,6 +77,6 @@ cn: kafka
 sn: Service
 uid: kafka
 userPassword: kafkapwd
-krb5PrincipalName: kafka/broker.kerberos.example@${realm}
+krb5PrincipalName: kafka/kafkabroker@${realm}
 krb5KeyVersionNumber: 0
 

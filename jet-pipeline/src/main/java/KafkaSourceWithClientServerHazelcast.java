@@ -44,7 +44,7 @@ public class KafkaSourceWithClientServerHazelcast {
     private static final String AUTO_OFFSET_RESET = "earliest";
 
     private static final String SINK_NAME = "sink_orders";
-    private static final String INTERNAL_DOCKER_BROKER_ADDRESS = "broker.kerberos.example:9092";
+    private static final String INTERNAL_DOCKER_BROKER_ADDRESS = "kafkabroker:9092";
 
     private static Pipeline buildPipeline() {
         Properties props = new Properties();

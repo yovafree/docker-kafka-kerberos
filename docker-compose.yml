@@ -13,12 +13,15 @@ services:
 
   kerberos:
     image: kwart/kerberos-server:1.1.0
-    hostname: kdc.kerberos.example
+    hostname: kerberos
     container_name: kerberos
     volumes:
       - ./krb5.conf:/etc/krb5.conf
       - ./data.ldif:/mnt/data.ldif
     command: [ "-lp", "389", "-kp", "88", "-b", "0.0.0.0",  "/mnt/data.ldif" ]
+    ports:
+    - 88:88
+    - 389:389
 
   key-material-generator:
     image: kwart/kerberos-server:1.1.0
@@ -31,12 +34,12 @@ services:
       - key-material:/mnt
     command:
       - |
-        java -classpath /kerberos-server.jar com.github.kwart.kerberos.CreateKeytab kafka/broker.kerberos.example@KERBEROS.EXAMPLE kafkapwd /mnt/broker.keytab
+        java -classpath /kerberos-server.jar com.github.kwart.kerberos.CreateKeytab kafka/kafkabroker@KERBEROS.EXAMPLE kafkapwd /mnt/broker.keytab
         java -classpath /kerberos-server.jar com.github.kwart.kerberos.CreateKeytab jduke@KERBEROS.EXAMPLE theduke /mnt/jduke.keytab
 
   broker:
     image: confluentinc/cp-kafka:7.1.0
-    hostname: broker.kerberos.example
+    hostname: kafkabroker
     container_name: broker
     ports:
     - 29092:29092
@@ -56,8 +59,11 @@ services:
       KAFKA_SASL_ENABLED_MECHANISMS: GSSAPI
       KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL: GSSAPI
       KAFKA_SECURITY_INTER_BROKER_PROTOCOL: SASL_PLAINTEXT
-      KAFKA_LISTENERS: SASL_PLAINTEXT://broker.kerberos.example:9092
-      KAFKA_ADVERTISED_LISTENERS: SASL_PLAINTEXT://broker.kerberos.example:9092
+#      KAFKA_LISTENERS: SASL_PLAINTEXT://kafkabroker:9092
+#      KAFKA_ADVERTISED_LISTENERS: SASL_PLAINTEXT://kafkabroker:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,SASL_PLAINTEXT:SASL_PLAINTEXT
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,PLAINTEXT_HOST://0.0.0.0:9092,SASL_PLAINTEXT://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafkabroker:29092,PLAINTEXT_HOST://localhost:9092,SASL_PLAINTEXT://kafkabroker:9093
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
@@ -65,15 +71,33 @@ services:
       KAFKA_ZOOKEEPER_CONNECT: 'zookeeper.kerberos.example:2181'
       ZOOKEEPER_SASL_ENABLED: "false"
       KAFKA_OPTS: '-Djava.security.auth.login.config=/etc/kafka/kafka_server_jaas.conf'
-      # -Dsun.security.krb5.debug=true -Dcom.ibm.security.jgss.debug=all -Dcom.ibm.security.krb5.Krb5Debug=all -Dsun.security.jgss.debug=true'
-  # kafka-ui:
-  #   image: obsidiandynamics/kafdrop
-  #   ports: 
-  #       - 9000:9000
-  #   environment: 
-  #       - KAFKA_BROKERCONNECT=broker.kerberos.example:29092
-  #       - JVM_OPTS=-Xms32M -Xmx64M
-  #       - SERVER_SERVLET_CONTEXTPATH=/ 
+
+  # netconsumer:
+  #   image: netconsumer
+  #   volumes:
+  #     - "key-material:/mnt"
+  #     - ./krb5.conf:/etc/krb5.conf
+
+  # netproducer:
+  #   image: netproducer
+  #   volumes:
+  #     - "key-material:/mnt"
+  #     - ./krb5.conf:/etc/krb5.conf
+  kafka-ui:
+   image: obsidiandynamics/kafdrop
+   ports: 
+       - 9000:9000
+   environment: 
+       - KAFKA_BROKERCONNECT=kafkabroker:29092
+       - JVM_OPTS=-Xms32M -Xmx64M
+       - SERVER_SERVLET_CONTEXTPATH=/ 
+  rabbitmq:
+    container_name: rabbitmq
+    hostname: rabbitmq
+    image: rabbitmq:3-management-alpine
+    ports:
+      - 15672:15672
+      - 5672:5672
   # hazelcast:
   #   image: hazelcast/hazelcast:5.1.4
   #   hostname: hazelcast.kerberos.example

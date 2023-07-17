@@ -23,7 +23,7 @@ CREATE MAPPING trades (
 TYPE Kafka
 OPTIONS (
     'valueFormat' = 'json-flat',
-    'bootstrap.servers' = 'broker.kerberos.example:9092',
+    'bootstrap.servers' = 'kafkabroker:9092',
     'sasl.mechanism' = 'GSSAPI',
     'security.protocol' = 'SASL_PLAINTEXT',
     'sasl.kerberos.service.name' = 'kafka',
@@ -47,7 +47,7 @@ See https://docs.hazelcast.com/hazelcast/latest/sql/learn-sql
 docker exec -it broker bash
 
 # create topic and test producer+consumer authentication
-kafka-topics --bootstrap-server broker.kerberos.example:9092 --create --topic hztest --command-config /etc/kafka/kafka-client.properties
-cat /etc/passwd | kafka-console-producer --bootstrap-server broker.kerberos.example:9092 --topic hztest --producer.config /etc/kafka/kafka-client.properties
-kafka-console-consumer --bootstrap-server broker.kerberos.example:9092 --topic hztest --consumer.config /etc/kafka/kafka-client.properties --from-beginning 
+kafka-topics --bootstrap-server kafkabroker:9093 --create --topic hztest --command-config /etc/kafka/kafka-client.properties
+cat /etc/passwd | kafka-console-producer --bootstrap-server kafkabroker:9093 --topic hztest --producer.config /etc/kafka/kafka-client.properties
+kafka-console-consumer --bootstrap-server kafkabroker:9093 --topic hztest --consumer.config /etc/kafka/kafka-client.properties --from-beginning 
 ```
