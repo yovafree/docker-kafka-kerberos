@@ -1,0 +1,136 @@
+version: '2'
+
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.1.0
+    hostname: zookeeper.kerberos.example
+    container_name: zookeeper
+    ports:
+    - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  kerberos:
+    image: kwart/kerberos-server:1.1.0
+    hostname: kerberos
+    container_name: kerberos
+    volumes:
+      - ./krb5.conf:/etc/krb5.conf
+      - ./data.ldif:/mnt/data.ldif
+    command: [ "-lp", "389", "-kp", "88", "-b", "0.0.0.0",  "/mnt/data.ldif" ]
+    ports:
+    - 88:88
+    - 389:389
+
+  key-material-generator:
+    image: kwart/kerberos-server:1.1.0
+    hostname: kmg.kerberos.example
+    container_name: key-material-generator
+    entrypoint:
+      - sh
+      - -c
+    volumes:
+      - key-material:/mnt
+    command:
+      - |
+        java -classpath /kerberos-server.jar com.github.kwart.kerberos.CreateKeytab kafka/kafkabroker@KERBEROS.EXAMPLE kafkapwd /mnt/broker.keytab
+        java -classpath /kerberos-server.jar com.github.kwart.kerberos.CreateKeytab jduke@KERBEROS.EXAMPLE theduke /mnt/jduke.keytab
+
+  broker:
+    image: confluentinc/cp-kafka:7.1.0
+    hostname: kafkabroker
+    container_name: broker
+    ports:
+    - 29092:29092
+    - 9092:9092
+    - 9093:9093
+    - 9094:9094
+    - 9095:9095
+    depends_on:
+      - zookeeper
+      - kerberos
+      - key-material-generator
+    volumes:
+      - key-material:/mnt
+      - ./krb5.conf:/etc/krb5.conf
+      - ./kafka_server_jaas.conf:/etc/kafka/kafka_server_jaas.conf
+      - ./kafka-client.properties:/etc/kafka/kafka-client.properties
+      - ./secrets:/etc/kafka/secrets
+    environment:
+      KAFKA_LOG4J_ROOT_LOGLEVEL: ERROR
+      KAFKA_LOG4J_LOGLEVEL: ERROR
+      KAFKA_BROKER_ID: 1
+#      KAFKA_LISTENERS: SASL_PLAINTEXT://kafkabroker:9092
+#      KAFKA_ADVERTISED_LISTENERS: SASL_PLAINTEXT://kafkabroker:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,SSL:SSL
+      KAFKA_SECURITY_INTER_BROKER_PROTOCOL: SSL
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,PLAINTEXT_HOST://0.0.0.0:9092,SSL://0.0.0.0:9095
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafkabroker:29092,PLAINTEXT_HOST://localhost:9092,SSL://kafkabroker:9095
+      KAFKA_SSL_KEYSTORE_FILENAME: kafka.broker.keystore.jks
+      KAFKA_SSL_KEYSTORE_CREDENTIALS: broker_keystore_creds
+      KAFKA_SSL_KEY_CREDENTIALS: broker_sslkey_creds
+      KAFKA_SSL_TRUSTSTORE_FILENAME: kafka.broker.truststore.jks
+      KAFKA_SSL_TRUSTSTORE_CREDENTIALS: broker_truststore_creds
+      KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: " "
+      KAFKA_LISTENER_NAME_INTERNAL_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: " "
+      KAFKA_SSL_CLIENT_AUTH: requested
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+#      KAFKA_SASL_KERBEROS_SERVICE_NAME: kafka
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper.kerberos.example:2181'
+      ZOOKEEPER_SASL_ENABLED: "false"
+      #KAFKA_OPTS: '-Djava.security.auth.login.config=/etc/kafka/kafka_server_jaas.conf'
+
+  # netconsumer:
+  #   image: netconsumer
+  #   volumes:
+  #     - "key-material:/mnt"
+  #     - ./krb5.conf:/etc/krb5.conf
+
+  # netproducer:
+  #   image: netproducer
+  #   volumes:
+  #     - "key-material:/mnt"
+  #     - ./krb5.conf:/etc/krb5.conf
+  kafka-ui:
+   image: obsidiandynamics/kafdrop
+   ports: 
+       - 9000:9000
+   environment: 
+       - KAFKA_BROKERCONNECT=kafkabroker:29092
+       - JVM_OPTS=-Xms32M -Xmx64M
+       - SERVER_SERVLET_CONTEXTPATH=/ 
+  rabbitmq:
+    container_name: rabbitmq
+    hostname: rabbitmq
+    image: rabbitmq:3-management-alpine
+    ports:
+      - 15672:15672
+      - 5672:5672
+  # hazelcast:
+  #   image: hazelcast/hazelcast:5.1.4
+  #   hostname: hazelcast.kerberos.example
+  #   container_name: hazelcast
+  #   ports:
+  #   - "5701:5701"
+  #   depends_on:
+  #     - broker
+  #   volumes:
+  #     - key-material:/mnt
+  #     - ./krb5.conf:/etc/krb5.conf
+
+  # management-center:
+  #   image: hazelcast/management-center:latest
+  #   hostname: management-center.kerberos.example
+  #   container_name: management-center
+  #   ports:
+  #   - "8080:8080"
+  #   environment:
+  #   - MC_DEFAULT_CLUSTER=dev
+  #   - MC_DEFAULT_CLUSTER_MEMBERS=hazelcast.kerberos.example
+  #   - MC_ALLOW_MULTIPLE_LOGIN=true
+
+volumes:
+  key-material:

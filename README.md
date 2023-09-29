@@ -50,4 +50,8 @@ docker exec -it broker bash
 kafka-topics --bootstrap-server kafkabroker:9093 --create --topic hztest --command-config /etc/kafka/kafka-client.properties
 cat /etc/passwd | kafka-console-producer --bootstrap-server kafkabroker:9093 --topic hztest --producer.config /etc/kafka/kafka-client.properties
 kafka-console-consumer --bootstrap-server kafkabroker:9093 --topic hztest --consumer.config /etc/kafka/kafka-client.properties --from-beginning 
+
+
+kafka-topics --bootstrap-server kafkabroker:9093 --create --topic r_8650 --command-config /etc/kafka/kafka-client.properties
+cat /etc/passwd | kafka-console-producer --bootstrap-server kafkabroker:9093 --topic r_8650 --producer.config /etc/kafka/kafka-client.properties
 ```
