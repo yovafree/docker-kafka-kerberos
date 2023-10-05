@@ -55,3 +55,18 @@ kafka-console-consumer --bootstrap-server kafkabroker:9093 --topic hztest --cons
 kafka-topics --bootstrap-server kafkabroker:9093 --create --topic r_8650 --command-config /etc/kafka/kafka-client.properties
 cat /etc/passwd | kafka-console-producer --bootstrap-server kafkabroker:9093 --topic r_8650 --producer.config /etc/kafka/kafka-client.properties
 ```
+
+Commands to convert JKS to crt & key
+
+keytool -importkeystore -srckeystore kafka.consumer.truststore.jks -destkeystore ca_consumer.pkcs12 -deststoretype PKCS12
+
+openssl pkcs12 -in ca_consumer.pkcs12  -nodes -nocerts -out ca_consumer.key
+
+openssl pkcs12 -in ca_consumer.pkcs12 -nokeys -out ca_consumer.crt
+
+
+keytool -importkeystore -srckeystore kafka.consumer.keystore.jks -destkeystore tls_consumer.pkcs12 -deststoretype PKCS12
+
+openssl pkcs12 -in tls_consumer.pkcs12 -nodes -nocerts -out tls_consumer.key
+
+openssl pkcs12 -in tls_consumer.pkcs12 -nokeys -out tls_consumer.crt
