@@ -1,6 +1,6 @@
 #!/bin/bash
 # Generate CA key
-openssl req -new -x509 -keyout my-ca.key -out my-ca.crt -days 365 -subj '/CN=kafkabroker/OU=TEST/O=showmeyourcode/L=London/S=LDN/C=UK' -passin pass:my-test-password -passout pass:my-test-password
+openssl req -new -x509 -keyout my-ca.key -out my-ca.crt -days 1095 -subj '/CN=kafkabroker/OU=TEST/O=showmeyourcode/L=London/S=LDN/C=UK' -passin pass:my-test-password -passout pass:my-test-password
 
 for i in broker producer consumer
 do 

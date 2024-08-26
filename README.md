@@ -60,13 +60,13 @@ Commands to convert JKS to crt & key
 
 keytool -importkeystore -srckeystore kafka.consumer.truststore.jks -destkeystore ca_consumer.pkcs12 -deststoretype PKCS12
 
-openssl pkcs12 -in ca_consumer.pkcs12  -nodes -nocerts -out ca_consumer.key
+openssl pkcs12 -in ca_consumer.pkcs12  -nodes -nocerts -out ca_consumer.key -legacy
 
-openssl pkcs12 -in ca_consumer.pkcs12 -nokeys -out ca_consumer.crt
+openssl pkcs12 -in ca_consumer.pkcs12 -nokeys -out ca_consumer.crt -legacy
 
 
 keytool -importkeystore -srckeystore kafka.consumer.keystore.jks -destkeystore tls_consumer.pkcs12 -deststoretype PKCS12
 
-openssl pkcs12 -in tls_consumer.pkcs12 -nodes -nocerts -out tls_consumer.key
+openssl pkcs12 -in tls_consumer.pkcs12 -nodes -nocerts -out tls_consumer.key -legacy
 
-openssl pkcs12 -in tls_consumer.pkcs12 -nokeys -out tls_consumer.crt
+openssl pkcs12 -in tls_consumer.pkcs12 -nokeys -out tls_consumer.crt -legacy
